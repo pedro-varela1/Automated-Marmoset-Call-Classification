@@ -29,7 +29,7 @@ class DataPreparation:
     def __init__(self, background_noise_path="background_noise",
                  freq_cutoff_up=18000, freq_cutoff_down=750,
                  sr=48000, n_fft=1024, hop_length=256,
-                 min_duration=300, max_duration=2000):
+                 min_duration=100, max_duration=1600):
         self.background_noise_path = background_noise_path
         self.freq_cutoff_up = freq_cutoff_up
         self.freq_cutoff_down = freq_cutoff_down
@@ -118,7 +118,7 @@ class DataPreparation:
         annotation_df = pd.read_csv(annotation_file_path)
         paths_index = {}
         for index, annotation_row in tqdm(annotation_df.iterrows(), desc=f"Preprocessing calls", leave=False):
-            if annotation_row['label'] == 'p':
+            if annotation_row['label'] == 'v':
                 start_time = int(annotation_row['onset_s']*1000)    # Start time in ms
                 end_time = int(annotation_row['offset_s']*1000)     # End time in ms
                 if end_time <= start_time:
