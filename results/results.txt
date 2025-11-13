@@ -1,0 +1,62 @@
+Blue2A:
+Precisão: 0.8723
+Recall: 0.8652
+F1-Score: 0.8687
+AUC: 0.9889
+Amostras totais: 1350
+
+Blue2C:
+Precisão: 0.8673
+Recall: 0.8815
+F1-Score: 0.8744
+AUC: 0.9905
+Amostras totais: 1350
+
+Blue3A:
+Precisão: 0.9178
+Recall: 0.9259
+F1-Score: 0.9218
+AUC: 0.9961
+Amostras totais: 1350
+
+Blue3B:
+Precisão: 0.8867
+Recall: 0.9104
+F1-Score: 0.8984
+AUC: 0.9929
+Amostras totais: 1350
+
+Blue3C:
+Precisão: 0.9077
+Recall: 0.9037
+F1-Score: 0.9057
+AUC: 0.9936
+Amostras totais: 1350
+
+Pink2C:
+Precisão: 0.9259
+Recall: 0.9252
+F1-Score: 0.9255
+AUC: 0.9966
+Amostras totais: 1350
+
+Pink3A:
+Precisão: 0.8984
+Recall: 0.8970
+F1-Score: 0.8977
+AUC: 0.9925
+Amostras totais: 1350
+
+Pink3B:
+Precisão: 0.8729
+Recall: 0.8904
+F1-Score: 0.8816
+AUC: 0.9914
+Amostras totais: 1350
+
+Pink3C:
+Precisão: 0.9207
+Recall: 0.8681
+F1-Score: 0.8936
+AUC: 0.9944
+Amostras totais: 1350

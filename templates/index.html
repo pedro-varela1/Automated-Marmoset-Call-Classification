@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marmoset Vocalization Classifier</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8">
+            <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">Marmoset Vocalization Classifier</h1>
+            
+            <form id="uploadForm" class="space-y-6">
+                <div class="space-y-4">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                        <div class="space-y-3">
+                            <label class="block">
+                                <span class="text-gray-700 font-medium">CSV File (Annotations)</span>
+                                <p class="text-sm text-gray-500 mb-2">Must contain an 'audio_path' column with audio filenames</p>
+                                <input type="file" 
+                                       name="csv" 
+                                       accept=".csv" 
+                                       required
+                                       class="mt-1 block w-full text-sm text-gray-500
+                                              file:mr-4 file:py-2 file:px-4
+                                              file:rounded-full file:border-0
+                                              file:text-sm file:font-semibold
+                                              file:bg-blue-50 file:text-blue-700
+                                              hover:file:bg-blue-100">
+                            </label>
+                            
+                            <label class="block">
+                                <span class="text-gray-700 font-medium">Audio Files (.wav)</span>
+                                <p class="text-sm text-gray-500 mb-2">Select multiple audio files (names must match CSV audio_path column)</p>
+                                <input type="file" 
+                                       name="audios" 
+                                       accept=".wav" 
+                                       multiple
+                                       required
+                                       class="mt-1 block w-full text-sm text-gray-500
+                                              file:mr-4 file:py-2 file:px-4
+                                              file:rounded-full file:border-0
+                                              file:text-sm file:font-semibold
+                                              file:bg-blue-50 file:text-blue-700
+                                              hover:file:bg-blue-100">
+                            </label>
+                            <div id="fileList" class="text-sm text-gray-600 mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full py-3 px-4 bg-blue-600 text-white font-medium rounded-lg
+                               hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                               transition-colors disabled:opacity-50"
+                        id="submitBtn">
+                    Classify Vocalizations
+                </button>
+            </form>
+
+            <!-- Loading and Status Indicators -->
+            <div id="loadingIndicator" class="hidden mt-6 text-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-3 text-gray-600">Processing your files... This may take a few moments.</p>
+            </div>
+
+            <div id="errorMessage" class="hidden mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            </div>
+
+            <div id="successMessage" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                Classification complete! Your results have been downloaded.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show selected audio files
+        document.querySelector('input[name="audios"]').addEventListener('change', (e) => {
+            const fileList = document.getElementById('fileList');
+            const files = e.target.files;
+            
+            if (files.length > 0) {
+                fileList.innerHTML = `<strong>Selected ${files.length} file(s):</strong><br>` + 
+                    Array.from(files).map(f => `• ${f.name}`).join('<br>');
+            } else {
+                fileList.innerHTML = '';
+            }
+        });
+        
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Reset messages
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+            
+            try {
+                const formData = new FormData(form);
+                
+                const response = await fetch('/classify', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Classification failed');
+                }
+                
+                // Handle successful response
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'predictions.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                // Show success message
+                successMessage.classList.remove('hidden');
+                
+            } catch (error) {
+                // Show error message
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                // Reset loading state
+                submitBtn.disabled = false;
+                loadingIndicator.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
