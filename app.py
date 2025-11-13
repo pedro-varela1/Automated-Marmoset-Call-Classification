@@ -146,6 +146,8 @@ def classify_vocalizations():
     csv_file = request.files['csv']
     audio_files = request.files.getlist('audios')
     
+    print(f"DEBUG: Received {len(audio_files)} audio file(s)")
+    
     # Check if CSV is valid
     if not allowed_csv_file(csv_file.filename):
         return jsonify({'error': 'Invalid CSV file format'}), 400
@@ -162,10 +164,17 @@ def classify_vocalizations():
     saved_audio_files = {}
     for audio_file in audio_files:
         if audio_file and allowed_audio_file(audio_file.filename):
-            filename = secure_filename(audio_file.filename)
-            audio_path = os.path.join(audio_folder, filename)
-            audio_file.save(audio_path)
-            saved_audio_files[filename] = audio_path
+            # Keep original filename (not using secure_filename to preserve exact name)
+            original_filename = audio_file.filename
+            # But use secure_filename for the path to prevent directory traversal
+            safe_path = os.path.join(audio_folder, secure_filename(original_filename))
+            audio_file.save(safe_path)
+            # Map original filename to path
+            saved_audio_files[original_filename] = safe_path
+            print(f"DEBUG: Saved audio file: {original_filename} -> {safe_path}")
+    
+    print(f"DEBUG: Total saved audio files: {len(saved_audio_files)}")
+    print(f"DEBUG: Saved filenames: {list(saved_audio_files.keys())}")
     
     if not saved_audio_files:
         return jsonify({'error': 'No valid audio files uploaded'}), 400
@@ -177,6 +186,9 @@ def classify_vocalizations():
         if 'audio_path' not in df.columns:
             return jsonify({'error': 'CSV must contain "audio_path" column'}), 400
         
+        # Strip whitespace from audio_path column
+        df['audio_path'] = df['audio_path'].str.strip()
+        
         # Create temporary folder for spectrograms
         temp_spec_folder = os.path.join(UPLOAD_FOLDER, 'spectrograms')
         os.makedirs(temp_spec_folder, exist_ok=True)
@@ -186,11 +198,17 @@ def classify_vocalizations():
         unique_audio_files = df['audio_path'].unique()
         
         print(f"Processing {len(unique_audio_files)} unique audio files...")
+        print(f"DEBUG: Audio files in CSV: {list(unique_audio_files)}")
         
         for audio_filename in unique_audio_files:
             # Check if this audio file was uploaded
             if audio_filename not in saved_audio_files:
                 print(f"Warning: Audio file '{audio_filename}' not found in uploaded files. Skipping...")
+                print(f"DEBUG: Uploaded files: {list(saved_audio_files.keys())}")
+                print(f"DEBUG: Expected file: '{audio_filename}'")
+                print(f"DEBUG: Filename match check:")
+                for uploaded_name in saved_audio_files.keys():
+                    print(f"  - '{uploaded_name}' == '{audio_filename}': {uploaded_name == audio_filename}")
                 continue
             
             audio_path = saved_audio_files[audio_filename]
